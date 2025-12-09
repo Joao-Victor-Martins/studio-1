@@ -3,8 +3,8 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: 'DiameterCalc Pro',
-  description: 'Calculate diameter percentage and proportional weight balance.',
+  title: 'CalculadoraDeDiâmetro Pro',
+  description: 'Calcule a porcentagem do diâmetro e o equilíbrio proporcional do peso.',
 };
 
 export default function RootLayout({
@@ -13,7 +13,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="pt">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

@@ -6,10 +6,10 @@ export default function Home() {
       <div className="w-full max-w-md space-y-6">
         <div className="text-center">
           <h1 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl font-headline">
-            DiameterCalc Pro
+            CalculadoraDeDiâmetro Pro
           </h1>
           <p className="mt-2 text-muted-foreground">
-            Calculate diameter percentage and proportional weight balance with precision.
+            Calcule a porcentagem do diâmetro e o equilíbrio proporcional do peso com precisão.
           </p>
         </div>
         <DiameterCalculator />

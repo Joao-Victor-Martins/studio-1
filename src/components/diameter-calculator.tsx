@@ -33,10 +33,10 @@ import { Separator } from "@/components/ui/separator";
 import { ArrowDownUp, MoveHorizontal, Percent, Scale, Weight } from "lucide-react";
 
 const formSchema = z.object({
-  minDiameter: z.string({ required_error: "Please select a minimum diameter." }),
-  maxDiameter: z.string({ required_error: "Please select a maximum diameter." }),
-  currentDiameter: z.coerce.number().min(1, "Current diameter must be positive."),
-  totalWeight: z.coerce.number().min(1, "Total weight must be positive."),
+  minDiameter: z.string({ required_error: "Selecione um diâmetro mínimo." }),
+  maxDiameter: z.string({ required_error: "Selecione um diâmetro máximo." }),
+  currentDiameter: z.coerce.number().min(1, "O diâmetro atual deve ser positivo."),
+  totalWeight: z.coerce.number().min(1, "O peso total deve ser positivo."),
 }).superRefine((data, ctx) => {
   const min = parseFloat(data.minDiameter);
   const max = parseFloat(data.maxDiameter);
@@ -44,7 +44,7 @@ const formSchema = z.object({
   if (!isNaN(min) && !isNaN(max) && (data.currentDiameter < min || data.currentDiameter > max)) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      message: `Must be between ${min} and ${max} mm`,
+      message: `Deve estar entre ${min} e ${max} mm`,
       path: ["currentDiameter"],
     });
   }
@@ -97,8 +97,8 @@ export function DiameterCalculator() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Enter Parameters</CardTitle>
-          <CardDescription>Provide the details below to calculate the values.</CardDescription>
+          <CardTitle>Inserir Parâmetros</CardTitle>
+          <CardDescription>Forneça os detalhes abaixo para calcular os valores.</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -109,11 +109,11 @@ export function DiameterCalculator() {
                   name="minDiameter"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Min Diameter</FormLabel>
+                      <FormLabel>Diâmetro Mínimo</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select min diameter" />
+                            <SelectValue placeholder="Selecione o diâmetro mínimo" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -130,11 +130,11 @@ export function DiameterCalculator() {
                   name="maxDiameter"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Max Diameter</FormLabel>
+                      <FormLabel>Diâmetro Máximo</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select max diameter" />
+                            <SelectValue placeholder="Selecione o diâmetro máximo" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -154,9 +154,9 @@ export function DiameterCalculator() {
                 name="currentDiameter"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Current Diameter (mm)</FormLabel>
+                    <FormLabel>Diâmetro Atual (mm)</FormLabel>
                     <FormControl>
-                      <Input type="number" step="any" placeholder="e.g., 450" {...field} />
+                      <Input type="number" step="any" placeholder="ex: 450" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -167,16 +167,16 @@ export function DiameterCalculator() {
                 name="totalWeight"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Total Weight (kg)</FormLabel>
+                    <FormLabel>Peso Total (kg)</FormLabel>
                     <FormControl>
-                      <Input type="number" step="any" placeholder="e.g., 1000" {...field} />
+                      <Input type="number" step="any" placeholder="ex: 1000" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
               <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
-                Calculate
+                Calcular
               </Button>
             </form>
           </Form>
@@ -186,25 +186,25 @@ export function DiameterCalculator() {
       {result && (
         <Card className="animate-in fade-in-50 duration-500">
           <CardHeader>
-            <CardTitle>Calculation Result</CardTitle>
-            <CardDescription>Here is the breakdown based on your input.</CardDescription>
+            <CardTitle>Resultado do Cálculo</CardTitle>
+            <CardDescription>Aqui está a análise com base na sua entrada.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
-                <ResultItem icon={ArrowDownUp} label="Diameter Range" value={`${result.minDiameter} - ${result.maxDiameter} mm`} />
-                <ResultItem icon={MoveHorizontal} label="Current Diameter" value={`${result.currentDiameter} mm`} />
-                <ResultItem icon={Weight} label="Total Weight" value={`${result.totalWeight} kg`} />
+                <ResultItem icon={ArrowDownUp} label="Intervalo de Diâmetro" value={`${result.minDiameter} - ${result.maxDiameter} mm`} />
+                <ResultItem icon={MoveHorizontal} label="Diâmetro Atual" value={`${result.currentDiameter} mm`} />
+                <ResultItem icon={Weight} label="Peso Total" value={`${result.totalWeight} kg`} />
             </div>
             <Separator />
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="flex flex-col items-center justify-center rounded-lg bg-muted p-4 text-center">
                 <Percent className="h-8 w-8 text-primary mb-2" />
-                <span className="text-xs text-muted-foreground">Diameter Percentage</span>
+                <span className="text-xs text-muted-foreground">Porcentagem do Diâmetro</span>
                 <span className="text-2xl font-bold text-primary">{result.diameterPercentage.toFixed(2)}%</span>
               </div>
               <div className="flex flex-col items-center justify-center rounded-lg bg-muted p-4 text-center">
                 <Scale className="h-8 w-8 text-primary mb-2" />
-                <span className="text-xs text-muted-foreground">Weight Balance</span>
+                <span className="text-xs text-muted-foreground">Equilíbrio de Peso</span>
                 <span className="text-2xl font-bold text-primary">{result.weightBalance.toFixed(2)} kg</span>
               </div>
             </div>
