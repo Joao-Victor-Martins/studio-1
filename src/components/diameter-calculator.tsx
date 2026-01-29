@@ -153,8 +153,8 @@ export function DiameterCalculator() {
     let correctionFactor;
 
     if (minD === 150) {
-      correctionFactor = -16.5;
-      weightBalance = totalW * (diameterPercentage / 100) * (1 - 0.165);
+      correctionFactor = -19;
+      weightBalance = totalW * (diameterPercentage / 100) * (1 - 0.19);
     } else {
       correctionFactor = -43;
       weightBalance = totalW * (diameterPercentage / 100) * (1 - 0.43);
