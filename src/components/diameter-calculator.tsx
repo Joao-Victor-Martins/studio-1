@@ -138,14 +138,14 @@ export function DiameterCalculator() {
             maxDiameter: maxD,
             currentDiameter: currentD,
             totalWeight: totalW,
-            diameterPercentage: currentD > minD ? 100 : 0,
-            weightBalance: currentD > minD ? totalW * 0.44 : 0,
+            diameterPercentage: 0,
+            weightBalance: totalW * 0.44,
         });
         return;
     }
 
     const diameterPercentage = ((currentD - minD) / (maxD - minD)) * 100;
-    const weightBalance = totalW * (diameterPercentage / 100) * 0.44;
+    const weightBalance = totalW * ((100 - diameterPercentage) / 100) * 0.44;
 
     setResult({
       minDiameter: minD,
