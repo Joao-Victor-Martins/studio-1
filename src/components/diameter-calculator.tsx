@@ -128,6 +128,7 @@ export function DiameterCalculator() {
     const maxD = values.maxDiameter;
     const currentD = values.currentDiameter;
     const totalW = values.totalWeight;
+    const code = values.code;
 
     if(minD === 0 && maxD === 0) {
         form.setError("code", { type: "custom", message: "Insira um código válido para calcular." });
@@ -153,8 +154,13 @@ export function DiameterCalculator() {
     let correctionFactor;
 
     if (minD === 150) {
-      correctionFactor = -21;
-      weightBalance = totalW * (diameterPercentage / 100) * (1 - 0.21);
+      if (code.toLowerCase().startsWith('b')) {
+        correctionFactor = -5;
+        weightBalance = totalW * (diameterPercentage / 100) * (1 - 0.05);
+      } else {
+        correctionFactor = -21;
+        weightBalance = totalW * (diameterPercentage / 100) * (1 - 0.21);
+      }
     } else {
       correctionFactor = -43;
       weightBalance = totalW * (diameterPercentage / 100) * (1 - 0.43);
