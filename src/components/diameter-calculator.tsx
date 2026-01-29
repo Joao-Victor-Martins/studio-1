@@ -139,13 +139,13 @@ export function DiameterCalculator() {
             currentDiameter: currentD,
             totalWeight: totalW,
             diameterPercentage: currentD > minD ? 100 : 0,
-            weightBalance: currentD > minD ? totalW : 0,
+            weightBalance: currentD > minD ? totalW * 0.44 : 0,
         });
         return;
     }
 
     const diameterPercentage = ((currentD - minD) / (maxD - minD)) * 100;
-    const weightBalance = totalW * (diameterPercentage / 100);
+    const weightBalance = totalW * (diameterPercentage / 100) * 0.44;
 
     setResult({
       minDiameter: minD,
@@ -224,7 +224,7 @@ export function DiameterCalculator() {
         <Card className="animate-in fade-in-50 duration-500">
           <CardHeader>
             <CardTitle>Resultado do Cálculo</CardTitle>
-            <CardDescription>Aqui está a análise com base na sua entrada.</CardDescription>
+            <CardDescription>Aqui está a análise com base na sua entrada. Um fator de correção de 44% foi aplicado ao equilíbrio de peso.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
