@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -9,19 +9,13 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Card,
   CardContent,
@@ -32,21 +26,47 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { ArrowDownUp, MoveHorizontal, Percent, Scale, Weight } from "lucide-react";
 
-const formSchema = z.object({
-  minDiameter: z.string({ required_error: "Selecione um diâmetro mínimo." }),
-  maxDiameter: z.string({ required_error: "Selecione um diâmetro máximo." }),
-  currentDiameter: z.coerce.number().min(1, "O diâmetro atual deve ser positivo."),
-  totalWeight: z.coerce.number().min(1, "O peso total deve ser positivo."),
-}).superRefine((data, ctx) => {
-  const min = parseFloat(data.minDiameter);
-  const max = parseFloat(data.maxDiameter);
+const codes = [
+  { code: "B3016", minDiameter: 216, maxDiameter: 910 },
+  { code: "B3376", minDiameter: 216, maxDiameter: 890 },
+  { code: "B2035", minDiameter: 150, maxDiameter: 660 },
+  { code: "B1985", minDiameter: 150, maxDiameter: 680 },
+  { code: "B2140", minDiameter: 150, maxDiameter: 700 },
+  { code: "B2541", minDiameter: 150, maxDiameter: 480 },
+  { code: "B6900", minDiameter: 216, maxDiameter: 880 },
+  { code: "B3114", minDiameter: 216, maxDiameter: 910 },
+  { code: "B2994", minDiameter: 216, maxDiameter: 880 },
+  { code: "B2306", minDiameter: 216, maxDiameter: 880 },
+  { code: "B7200", minDiameter: 216, maxDiameter: 870 },
+  { code: "B5280", minDiameter: 216, maxDiameter: 900 },
+  { code: "F2568", minDiameter: 216, maxDiameter: 950 },
+  { code: "F2034", minDiameter: 216, maxDiameter: 910 },
+  { code: "F2640", minDiameter: 216, maxDiameter: 920 },
+  { code: "F1715", minDiameter: 150, maxDiameter: 660 },
+  { code: "F1440", minDiameter: 150, maxDiameter: 720 },
+  { code: "F1500", minDiameter: 150, maxDiameter: 720 },
+  { code: "F2064", minDiameter: 150, maxDiameter: 710 },
+  { code: "F2664", minDiameter: 216, maxDiameter: 940 },
+  { code: "F2400", minDiameter: 216, maxDiameter: 900 },
+  { code: "F2142", minDiameter: 150, maxDiameter: 730 },
+  { code: "F2034S", minDiameter: 150, maxDiameter: 730 },
+];
 
-  if (!isNaN(min) && !isNaN(max) && (data.currentDiameter < min || data.currentDiameter > max)) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: `Deve estar entre ${min} e ${max} mm`,
-      path: ["currentDiameter"],
-    });
+const formSchema = z.object({
+  code: z.string({ required_error: "Insira um código." }).min(1, "Insira um código."),
+  minDiameter: z.number(),
+  maxDiameter: z.number(),
+  currentDiameter: z.coerce.number().positive("O diâmetro atual deve ser positivo."),
+  totalWeight: z.coerce.number().positive("O peso total deve ser positivo."),
+}).superRefine((data, ctx) => {
+  if (data.minDiameter > 0 && data.maxDiameter > 0) {
+      if (data.currentDiameter < data.minDiameter || data.currentDiameter > data.maxDiameter) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Deve estar entre ${data.minDiameter} e ${data.maxDiameter} mm`,
+          path: ["currentDiameter"],
+        });
+      }
   }
 });
 
@@ -67,18 +87,62 @@ export function DiameterCalculator() {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      minDiameter: "150",
-      maxDiameter: "700",
+      code: "",
       currentDiameter: undefined,
       totalWeight: undefined,
+      minDiameter: 0,
+      maxDiameter: 0,
     },
+    mode: "onChange",
   });
 
+  const codeValue = form.watch("code");
+  const minDiameter = form.watch("minDiameter");
+  const maxDiameter = form.watch("maxDiameter");
+
+  useEffect(() => {
+    if (!codeValue) {
+      form.setValue("minDiameter", 0);
+      form.setValue("maxDiameter", 0);
+      form.clearErrors("code");
+      return;
+    }
+
+    const selectedCodeData = codes.find(c => c.code.toLowerCase() === codeValue?.toLowerCase());
+
+    if (selectedCodeData) {
+        form.setValue("minDiameter", selectedCodeData.minDiameter);
+        form.setValue("maxDiameter", selectedCodeData.maxDiameter);
+        form.clearErrors("code");
+    } else {
+        form.setValue("minDiameter", 0);
+        form.setValue("maxDiameter", 0);
+        form.setError("code", { type: "custom", message: "Código não encontrado." });
+    }
+  }, [codeValue, form]);
+
   function onSubmit(values: FormValues) {
-    const minD = parseFloat(values.minDiameter);
-    const maxD = parseFloat(values.maxDiameter);
+    const minD = values.minDiameter;
+    const maxD = values.maxDiameter;
     const currentD = values.currentDiameter;
     const totalW = values.totalWeight;
+
+    if(minD === 0 && maxD === 0) {
+        form.setError("code", { type: "custom", message: "Insira um código válido para calcular." });
+        return;
+    }
+    
+    if (maxD - minD === 0) {
+        setResult({
+            minDiameter: minD,
+            maxDiameter: maxD,
+            currentDiameter: currentD,
+            totalWeight: totalW,
+            diameterPercentage: currentD > minD ? 100 : 0,
+            weightBalance: currentD > minD ? totalW : 0,
+        });
+        return;
+    }
 
     const diameterPercentage = ((currentD - minD) / (maxD - minD)) * 100;
     const weightBalance = totalW * (diameterPercentage / 100);
@@ -98,57 +162,30 @@ export function DiameterCalculator() {
       <Card>
         <CardHeader>
           <CardTitle>Inserir Parâmetros</CardTitle>
-          <CardDescription>Forneça os detalhes abaixo para calcular os valores.</CardDescription>
+          <CardDescription>Insira um código para carregar os diâmetros e depois preencha o restante.</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <FormField
+              <FormField
                   control={form.control}
-                  name="minDiameter"
+                  name="code"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Diâmetro Mínimo</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione o diâmetro mínimo" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="150">150 mm</SelectItem>
-                          <SelectItem value="216">216 mm</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <FormLabel>Código</FormLabel>
+                      <FormControl>
+                        <Input placeholder="ex: B3016" {...field} />
+                      </FormControl>
+                      {(minDiameter > 0 || maxDiameter > 0) && (
+                        <FormDescription>
+                          Diâmetro: Mín {minDiameter}mm / Máx {maxDiameter}mm
+                        </FormDescription>
+                      )}
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="maxDiameter"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Diâmetro Máximo</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione o diâmetro máximo" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="700">700 mm</SelectItem>
-                          <SelectItem value="800">800 mm</SelectItem>
-                          <SelectItem value="900">900 mm</SelectItem>
-                          <SelectItem value="1000">1000 mm</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+
               <FormField
                 control={form.control}
                 name="currentDiameter"
@@ -156,7 +193,7 @@ export function DiameterCalculator() {
                   <FormItem>
                     <FormLabel>Diâmetro Atual (mm)</FormLabel>
                     <FormControl>
-                      <Input type="number" step="any" placeholder="ex: 450" {...field} />
+                      <Input type="number" step="any" placeholder="ex: 450" {...field} value={field.value ?? ""} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -169,7 +206,7 @@ export function DiameterCalculator() {
                   <FormItem>
                     <FormLabel>Peso Total (kg)</FormLabel>
                     <FormControl>
-                      <Input type="number" step="any" placeholder="ex: 1000" {...field} />
+                      <Input type="number" step="any" placeholder="ex: 1000" {...field} value={field.value ?? ""} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
