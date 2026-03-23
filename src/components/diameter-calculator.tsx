@@ -35,7 +35,7 @@ const codes = [
   { code: "B2541", minDiameter: 150, maxDiameter: 480 },
   { code: "B6900", minDiameter: 216, maxDiameter: 880 },
   { code: "B3114", minDiameter: 216, maxDiameter: 910 },
-  { code: "B2994", minDiameter: 216, maxDiameter: 880 },
+  { code: "B2994", minDiameter: 216, maxDiameter: 950 },
   { code: "B2306", minDiameter: 216, maxDiameter: 880 },
   { code: "B7200", minDiameter: 216, maxDiameter: 870 },
   { code: "B5280", minDiameter: 216, maxDiameter: 900 },
