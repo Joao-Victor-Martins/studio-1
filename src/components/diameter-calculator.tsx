@@ -80,7 +80,6 @@ interface CalculationResult {
   totalWeight: number;
   diameterPercentage: number;
   weightBalance: number;
-  correctionFactor: number;
 }
 
 export function DiameterCalculator() {
@@ -142,28 +141,12 @@ export function DiameterCalculator() {
             totalWeight: totalW,
             diameterPercentage: 0,
             weightBalance: totalW,
-            correctionFactor: 0,
         });
         return;
     }
 
     const diameterPercentage = ((currentD - minD) / (maxD - minD)) * 100;
-    
-    let weightBalance;
-    let correctionFactor;
-
-    if (minD === 150) {
-      if (values.code.toUpperCase().startsWith("B")) {
-        correctionFactor = -5;
-        weightBalance = totalW * (diameterPercentage / 100) * (1 - 0.05);
-      } else {
-        correctionFactor = -21;
-        weightBalance = totalW * (diameterPercentage / 100) * (1 - 0.21);
-      }
-    } else {
-      correctionFactor = -43;
-      weightBalance = totalW * (diameterPercentage / 100) * (1 - 0.43);
-    }
+    const weightBalance = totalW * (diameterPercentage / 100);
 
     setResult({
       minDiameter: minD,
@@ -172,7 +155,6 @@ export function DiameterCalculator() {
       totalWeight: totalW,
       diameterPercentage,
       weightBalance,
-      correctionFactor,
     });
   }
 
@@ -244,9 +226,7 @@ export function DiameterCalculator() {
           <CardHeader>
             <CardTitle>Resultado do Cálculo</CardTitle>
             <CardDescription>
-              {result.correctionFactor !== 0
-                ? `O equilíbrio de peso inclui um fator de correção de ${result.correctionFactor}%.`
-                : "Cálculo de equilíbrio de peso sem fator de correção."}
+              Cálculo de equilíbrio de peso proporcional direto.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
