@@ -24,7 +24,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { ArrowDownUp, MoveHorizontal, Percent, Scale, Weight } from "lucide-react";
+import { ArrowDownUp, MoveHorizontal, Percent, Scale, Weight, MinusCircle } from "lucide-react";
 
 const codes = [
   { code: "B3016", minDiameter: 216, maxDiameter: 910 },
@@ -57,15 +57,16 @@ const formSchema = z.object({
   code: z.string({ required_error: "Insira um código." }).min(1, "Insira um código."),
   minDiameter: z.number(),
   maxDiameter: z.number(),
-  currentDiameter: z.coerce.number().positive("O diâmetro atual deve ser positivo."),
+  consumedAmount: z.coerce.number().min(0, "O valor consumido não pode ser negativo."),
   totalWeight: z.coerce.number().positive("O peso total deve ser positivo."),
 }).superRefine((data, ctx) => {
-  if (data.minDiameter > 0 && data.maxDiameter > 0) {
-      if (data.currentDiameter < data.minDiameter || data.currentDiameter > data.maxDiameter) {
+  if (data.maxDiameter > 0 && data.minDiameter > 0) {
+      const maxPossibleConsumption = data.maxDiameter - data.minDiameter;
+      if (data.consumedAmount > maxPossibleConsumption) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: `Deve estar entre ${data.minDiameter} e ${data.maxDiameter} mm`,
-          path: ["currentDiameter"],
+          message: `O consumo máximo permitido é ${maxPossibleConsumption.toFixed(2)} mm (até chegar no mínimo)`,
+          path: ["consumedAmount"],
         });
       }
   }
@@ -76,6 +77,7 @@ type FormValues = z.infer<typeof formSchema>;
 interface CalculationResult {
   minDiameter: number;
   maxDiameter: number;
+  consumedAmount: number;
   currentDiameter: number;
   totalWeight: number;
   diameterPercentage: number;
@@ -89,7 +91,7 @@ export function DiameterCalculator() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       code: "",
-      currentDiameter: undefined,
+      consumedAmount: 0,
       totalWeight: undefined,
       minDiameter: 0,
       maxDiameter: 0,
@@ -125,7 +127,7 @@ export function DiameterCalculator() {
   function onSubmit(values: FormValues) {
     const minD = values.minDiameter;
     const maxD = values.maxDiameter;
-    const currentD = values.currentDiameter;
+    const consumed = values.consumedAmount;
     const totalW = values.totalWeight;
 
     if(minD === 0 && maxD === 0) {
@@ -133,10 +135,14 @@ export function DiameterCalculator() {
         return;
     }
     
+    // Cálculo do Diâmetro Atual
+    const currentD = maxD - consumed;
+    
     if (maxD - minD === 0) {
         setResult({
             minDiameter: minD,
             maxDiameter: maxD,
+            consumedAmount: consumed,
             currentDiameter: currentD,
             totalWeight: totalW,
             diameterPercentage: 0,
@@ -151,6 +157,7 @@ export function DiameterCalculator() {
     setResult({
       minDiameter: minD,
       maxDiameter: maxD,
+      consumedAmount: consumed,
       currentDiameter: currentD,
       totalWeight: totalW,
       diameterPercentage,
@@ -163,7 +170,7 @@ export function DiameterCalculator() {
       <Card>
         <CardHeader>
           <CardTitle>Inserir Parâmetros</CardTitle>
-          <CardDescription>Insira um código para carregar os diâmetros e depois preencha o restante.</CardDescription>
+          <CardDescription>Insira o código e quanto foi consumido para calcular o estado atual.</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -189,12 +196,12 @@ export function DiameterCalculator() {
 
               <FormField
                 control={form.control}
-                name="currentDiameter"
+                name="consumedAmount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Diâmetro Atual (mm)</FormLabel>
+                    <FormLabel>Consumido (mm)</FormLabel>
                     <FormControl>
-                      <Input type="number" step="any" placeholder="ex: 450" {...field} value={field.value ?? ""} />
+                      <Input type="number" step="any" placeholder="Quanto foi retirado do diâmetro" {...field} value={field.value ?? ""} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -226,25 +233,26 @@ export function DiameterCalculator() {
           <CardHeader>
             <CardTitle>Resultado do Cálculo</CardTitle>
             <CardDescription>
-              Cálculo de equilíbrio de peso proporcional direto.
+              Cálculo baseado no consumo informado.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
                 <ResultItem icon={ArrowDownUp} label="Intervalo de Diâmetro" value={`${result.minDiameter} - ${result.maxDiameter} mm`} />
-                <ResultItem icon={MoveHorizontal} label="Diâmetro Atual" value={`${result.currentDiameter} mm`} />
-                <ResultItem icon={Weight} label="Peso Total" value={`${result.totalWeight} kg`} />
+                <ResultItem icon={MinusCircle} label="Consumido" value={`${result.consumedAmount} mm`} />
+                <ResultItem icon={MoveHorizontal} label="Diâmetro Atual Calculado" value={`${result.currentDiameter.toFixed(2)} mm`} />
+                <ResultItem icon={Weight} label="Peso Total Original" value={`${result.totalWeight} kg`} />
             </div>
             <Separator />
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="flex flex-col items-center justify-center rounded-lg bg-muted p-4 text-center">
                 <Percent className="h-8 w-8 text-primary mb-2" />
-                <span className="text-xs text-muted-foreground">Porcentagem do Diâmetro</span>
+                <span className="text-xs text-muted-foreground">Porcentagem Restante</span>
                 <span className="text-2xl font-bold text-primary">{result.diameterPercentage.toFixed(2)}%</span>
               </div>
               <div className="flex flex-col items-center justify-center rounded-lg bg-muted p-4 text-center">
                 <Scale className="h-8 w-8 text-primary mb-2" />
-                <span className="text-xs text-muted-foreground">Equilíbrio de Peso</span>
+                <span className="text-xs text-muted-foreground">Equilíbrio de Peso Atual</span>
                 <span className="text-2xl font-bold text-primary">{result.weightBalance.toFixed(2)} kg</span>
               </div>
             </div>
